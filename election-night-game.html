@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unit 3 Review Game: Election Night</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page: #EDF0F5;
+  --ink: #1A1F2B;
+  --muted: #5A6375;
+  --navy: #16294D;
+  --navy-deep: #0E1C38;
+  --red: #B8232B;
+  --brass: #E3B33C;
+  --tile-used: #2A3756;
+  --card: #FFFFFF;
+  --line: #C9D0DC;
+  --good: #1E7A46;
+  --bad: #A3262C;
+  --display: "Alfa Slab One", "Rockwell", "Roboto Slab", Georgia, serif;
+  --body: "Source Sans 3", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0B1222; --ink: #E8ECF3; --muted: #9AA5B8; --navy: #1B3260; --navy-deep: #0E1C38;
+    --tile-used: #17213A; --card: #151F35; --line: #2C3A57; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0B1222; --ink: #E8ECF3; --muted: #9AA5B8; --navy: #1B3260; --navy-deep: #0E1C38;
+  --tile-used: #17213A; --card: #151F35; --line: #2C3A57; color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+body { margin: 0; height: 100%; background: var(--page); color: var(--ink); font-family: var(--body); font-size: 1.25rem; }
+button { font: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.hidden { display: none !important; }
+
+/* ---------- setup ---------- */
+.setup { max-width: 760px; margin: 0 auto; padding: 3rem 1.5rem; }
+.setup h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2.6rem, 6vw, 4.2rem); line-height: 1; margin: 0 0 .5rem; color: var(--navy); }
+:root[data-theme="dark"] .setup h1 { color: var(--brass); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .setup h1 { color: var(--brass); } }
+.setup .sub { color: var(--muted); margin: 0 0 2rem; font-size: 1.3rem; }
+.stripe { height: 10px; background: repeating-linear-gradient(90deg, var(--red) 0 40px, var(--card) 40px 56px, var(--navy) 56px 96px, var(--card) 96px 112px); margin-bottom: 2rem; border-radius: 2px; }
+.field { margin-bottom: 1.25rem; }
+.field label { display: block; font-weight: 700; margin-bottom: .4rem; }
+.field select, .team-inputs input { font: inherit; font-size: 1.2rem; padding: .55rem .75rem; border: 2px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+.team-inputs { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .75rem; }
+.team-inputs input { width: 100%; }
+.actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 2rem; }
+.btn { border: 0; border-radius: 10px; padding: .8rem 1.4rem; font-weight: 700; font-size: 1.2rem; }
+.btn-primary { background: var(--red); color: #fff; }
+.btn-secondary { background: transparent; color: var(--ink); border: 2px solid var(--line); }
+.btn-brass { background: var(--brass); color: var(--navy-deep); }
+.howto { margin-top: 2.5rem; color: var(--muted); font-size: 1.1rem; line-height: 1.5; }
+.howto strong { color: var(--ink); }
+
+/* ---------- board ---------- */
+.game { display: flex; flex-direction: column; height: 100%; min-height: 560px; padding: 1rem 1.25rem 0; gap: .8rem; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.topbar h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(1.4rem, 2.6vw, 2.2rem); color: var(--navy); }
+:root[data-theme="dark"] .topbar h2 { color: var(--brass); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .topbar h2 { color: var(--brass); } }
+.topbar .tools { display: flex; gap: .5rem; flex-wrap: wrap; }
+.topbar .btn { font-size: 1rem; padding: .55rem 1rem; }
+.board-wrap { flex: 1; min-height: 0; overflow: auto; }
+.board { display: grid; grid-template-columns: repeat(5, minmax(150px, 1fr)); gap: 8px; min-width: 780px; height: 100%; min-height: 380px; grid-template-rows: auto repeat(5, minmax(3.2rem, 1fr)); }
+.cat { background: var(--red); color: #fff; font-weight: 700; text-align: center; display: flex; align-items: center; justify-content: center; padding: .8rem .5rem; font-size: clamp(1.05rem, 1.6vw, 1.45rem); line-height: 1.15; border-radius: 6px 6px 0 0; min-height: 3.6rem; }
+.tile { background: var(--navy); color: var(--brass); border: 0; border-radius: 4px; font-family: var(--display); font-size: clamp(1.8rem, min(4vw, 7vh), 3.6rem); transition: transform .12s ease, background .12s ease; box-shadow: inset 0 -4px 0 var(--navy-deep); }
+.tile:hover:not(:disabled) { background: #1F3A6B; transform: translateY(-2px); }
+.tile:disabled { background: var(--tile-used); color: transparent; cursor: default; box-shadow: none; }
+
+/* ---------- scores ---------- */
+.scores { flex: none; display: flex; gap: .75rem; padding: .9rem 0 calc(.9rem + env(safe-area-inset-bottom, 0px)); background: var(--page); overflow-x: auto; }
+.team { flex: 1 1 0; min-width: 170px; background: var(--card); border: 2px solid var(--line); border-top: 8px solid var(--tc); border-radius: 10px; padding: .6rem .9rem; display: flex; flex-direction: column; gap: .2rem; }
+.team .name { font-weight: 700; font-size: 1.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.team .pts { font-family: var(--display); font-size: clamp(1.8rem, 3vw, 2.6rem); line-height: 1.1; }
+.team .pts.neg { color: var(--bad); }
+.team .adj { display: flex; gap: .35rem; }
+.team .adj button { flex: 1; border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 6px; padding: .15rem 0; font-size: .95rem; }
+
+/* ---------- clue overlay ---------- */
+.overlay { position: fixed; inset: 0; z-index: 20; background: var(--navy); color: #fff; display: flex; flex-direction: column; padding: calc(1.5rem + env(safe-area-inset-top, 0px)) clamp(1.25rem, 4vw, 4rem) calc(1.5rem + env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
+.overlay .meta { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; font-size: clamp(1.1rem, 1.8vw, 1.6rem); color: #C9D3E6; }
+.overlay .meta .val { font-family: var(--display); color: var(--brass); font-size: clamp(1.6rem, 3vw, 2.6rem); }
+.overlay .center { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 2rem; max-width: 1200px; width: 100%; margin: 0 auto; text-align: center; }
+.clue { font-size: clamp(2rem, 4.4vw, 4.4rem); line-height: 1.2; font-weight: 600; margin: 0; }
+.answer { font-size: clamp(1.8rem, 3.8vw, 3.6rem); line-height: 1.2; color: var(--brass); font-weight: 700; margin: 0; padding-top: 1.5rem; border-top: 3px solid rgba(255,255,255,.18); }
+.answer .note { display: block; font-size: .5em; font-weight: 400; color: #C9D3E6; margin-top: .6rem; }
+.dd-title { font-family: var(--display); font-size: clamp(3rem, 9vw, 8rem); color: var(--brass); line-height: 1; margin: 0; }
+.panel { display: flex; flex-direction: column; gap: 1rem; align-items: center; }
+.panel label { font-size: 1.4rem; }
+.panel select, .panel input { font: inherit; font-size: 1.5rem; padding: .5rem .8rem; border-radius: 8px; border: 0; min-width: 260px; text-align: center; color: var(--ink); background: #fff; }
+.controls { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 1rem; }
+.controls .btn { font-size: clamp(1.1rem, 1.6vw, 1.4rem); }
+.award { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem; }
+.award-group { display: flex; border-radius: 10px; overflow: hidden; border: 2px solid rgba(255,255,255,.25); }
+.award-group span { padding: .55rem .9rem; font-weight: 700; background: rgba(255,255,255,.08); display: flex; align-items: center; border-left: 8px solid var(--tc); }
+.award-group button { border: 0; padding: .55rem .9rem; font-weight: 700; font-size: 1.15rem; color: #fff; }
+.award-group .yes { background: var(--good); }
+.award-group .no { background: var(--bad); }
+.award-group button[aria-pressed="true"] { box-shadow: inset 0 0 0 4px var(--brass); }
+.hint { color: #9FB0CE; font-size: 1rem; text-align: center; }
+
+/* ---------- final ---------- */
+.wagers { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; width: 100%; }
+.wager { background: rgba(255,255,255,.07); border-radius: 10px; padding: 1rem; border-top: 8px solid var(--tc); text-align: left; }
+.wager .wn { font-weight: 700; font-size: 1.3rem; }
+.wager .ws { color: #C9D3E6; font-size: 1.05rem; margin-bottom: .5rem; }
+.wager input { width: 100%; font: inherit; font-size: 1.5rem; padding: .4rem .6rem; border-radius: 8px; border: 0; color: var(--ink); background: #fff; }
+.standings { list-style: none; padding: 0; margin: 0; width: 100%; max-width: 720px; text-align: left; }
+.standings li { display: flex; justify-content: space-between; align-items: baseline; padding: .8rem 1rem; border-bottom: 2px solid rgba(255,255,255,.15); font-size: clamp(1.4rem, 2.6vw, 2.2rem); }
+.standings li:first-child { color: var(--brass); font-family: var(--display); font-weight: 400; }
+.standings .s { font-family: var(--display); }
+
+@media (prefers-reduced-motion: reduce) { .tile { transition: none; } .tile:hover:not(:disabled) { transform: none; } }
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<section id="setup" class="setup">
+  <div class="stripe" aria-hidden="true"></div>
+  <h1>Election Night Review</h1>
+  <p class="sub">Unit 3: Political Parties and the Electoral College</p>
+
+  <div class="field">
+    <label for="teamCount">Number of teams</label>
+    <select id="teamCount">
+      <option>2</option><option>3</option><option>4</option><option selected>5</option><option>6</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Team names</label>
+    <div class="team-inputs" id="teamInputs"></div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" id="startBtn">Start game</button>
+    <button class="btn btn-secondary hidden" id="resumeBtn">Resume saved game</button>
+  </div>
+  <div class="howto">
+    <p><strong>How to play.</strong> Teams take turns picking a category and value. Read the question aloud, give teams time to agree on an answer, then press <strong>Show answer</strong> (or the space bar). Click the green check for each team that got it right. Wrong answers cost points only if you click the red X.</p>
+    <p>One tile is a <strong>Daily Double</strong>: the team that picks it wagers up to its score (or up to 500 if it has less). Finish with <strong>Final round</strong>, where every team wagers before seeing the question. Scores save in this browser, so a refresh won’t lose the game.</p>
+  </div>
+</section>
+
+<!-- GAME -->
+<section id="game" class="game hidden">
+  <div class="topbar">
+    <h2>Election Night Review</h2>
+    <div class="tools">
+      <button class="btn btn-brass" id="finalBtn">Final round</button>
+      <button class="btn btn-secondary" id="newBtn">New game</button>
+    </div>
+  </div>
+  <div class="board-wrap"><div class="board" id="board"></div></div>
+  <div class="scores" id="scores"></div>
+</section>
+
+<!-- OVERLAY -->
+<div id="overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Question">
+  <div class="meta"><span id="ovCat"></span><span class="val" id="ovVal"></span></div>
+  <div class="center" id="ovBody"></div>
+</div>
+
+<script>
+const CATEGORIES = [
+  { name: "Founding Factions", clues: [
+    ["The first two political factions, who argued over ratifying the Constitution", "Federalists and Anti-Federalists"],
+    ["The first two true political parties in the United States", "Federalists and Democratic-Republicans"],
+    ["This Founding Father led the Democratic-Republicans and favored states’ rights and farmers", "Thomas Jefferson"],
+    ["The Federalist Party lost support after opposing this war", "The War of 1812", "Their Hartford Convention looked disloyal."],
+    ["The period under President Monroe when only one party really existed", "The Era of Good Feelings"]
+  ]},
+  { name: "The Age of Jackson", clues: [
+    ["This man won the election of 1828", "Andrew Jackson"],
+    ["The animal symbol of the Democratic Party, which started as an insult to Jackson", "The donkey"],
+    ["The name Jackson’s supporters gave to the deal that made John Quincy Adams president in 1824", "The Corrupt Bargain", "Adams made Henry Clay Secretary of State."],
+    ["The two political parties that emerged after the election of 1824", "Democrats and National Republicans"],
+    ["Give one reason critics called Andrew Jackson “King Andrew”", "He used presidential power like a monarch", "Accept: record vetoes, destroying the national bank, the spoils system, or ignoring the Supreme Court."]
+  ]},
+  { name: "Whigs, Know Nothings & Republicans", clues: [
+    ["This party formed to oppose Andrew Jackson", "The Whigs"],
+    ["The Whig candidate who won the election of 1840", "William Henry Harrison"],
+    ["This party mainly opposed immigration and Catholic influence", "The Know Nothings", "Also called the American Party."],
+    ["The Republican Party was founded mainly in opposition to this", "The spread of slavery"],
+    ["The Republican Party’s first presidential candidate, in 1856", "John C. Frémont"]
+  ]},
+  { name: "Electoral College by the Numbers", clues: [
+    ["The minimum voting age in the United States", "18", "Set by the 26th Amendment."],
+    ["The number of electoral votes needed to win the presidency", "270"],
+    ["The total number of electoral votes", "538"],
+    ["California’s number of electoral votes, the most of any state", "54"],
+    ["Explain where the total of 538 electoral votes comes from", "435 House + 100 Senate + 3 for D.C."]
+  ]},
+  { name: "How Elections Work", clues: [
+    ["On Election Day, voters are technically choosing these people", "Electors"],
+    ["Under winner-take-all, the candidate who wins a state’s popular vote gets this", "All of the state’s electoral votes"],
+    ["Name one group of people who cannot serve as electors", "Members of Congress", "Also accept anyone holding a federal office."],
+    ["The two states that do not use winner-take-all", "Maine and Nebraska"],
+    ["What it would take to get rid of the Electoral College", "A constitutional amendment", "Two-thirds of both houses of Congress, then three-fourths of the states."]
+  ]}
+];
+const FINAL = {
+  category: "The Election of 2000",
+  clue: "Name the two major candidates, the state that decided the election, and the candidate who won the national popular vote.",
+  answer: "George W. Bush and Al Gore; Florida; Al Gore",
+  note: "Bush won Florida by 537 votes after the Supreme Court stopped the recount, and won the electoral vote 271–266."
+};
+const VALUES = [100, 200, 300, 400, 500];
+const TEAM_COLORS = ["#C1272D", "#2F6FD6", "#E3B33C", "#2E9E5B", "#8A4FC9", "#E07A1F"];
+const KEY = "unit3-election-night-v1";
+
+let state = null;
+
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function load() { try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+function clearSave() { try { localStorage.removeItem(KEY); } catch (e) {} }
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ---------- setup ---------- */
+function renderTeamInputs() {
+  const n = +$("teamCount").value;
+  const prev = [...$("teamInputs").querySelectorAll("input")].map(i => i.value);
+  $("teamInputs").innerHTML = Array.from({ length: n }, (_, i) =>
+    `<input type="text" maxlength="24" aria-label="Team ${i + 1} name" value="${esc(prev[i] ?? "Team " + (i + 1))}">`).join("");
+}
+$("teamCount").addEventListener("change", renderTeamInputs);
+renderTeamInputs();
+if (load()) $("resumeBtn").classList.remove("hidden");
+
+$("startBtn").addEventListener("click", () => {
+  const names = [...$("teamInputs").querySelectorAll("input")].map((i, k) => i.value.trim() || "Team " + (k + 1));
+  const ddCat = Math.floor(Math.random() * 5), ddRow = 2 + Math.floor(Math.random() * 3);
+  state = { teams: names.map(n => ({ name: n, score: 0 })), used: [], dd: [ddCat, ddRow] };
+  save(); showGame();
+});
+$("resumeBtn").addEventListener("click", () => { state = load(); if (state) showGame(); });
+$("newBtn").addEventListener("click", () => {
+  if (!confirm("Start a new game? Current scores will be cleared.")) return;
+  clearSave(); state = null; $("game").classList.add("hidden"); $("setup").classList.remove("hidden");
+  $("resumeBtn").classList.add("hidden");
+});
+
+/* ---------- board ---------- */
+function showGame() { $("setup").classList.add("hidden"); $("game").classList.remove("hidden"); renderBoard(); renderScores(); }
+function renderBoard() {
+  let html = CATEGORIES.map(c => `<div class="cat">${esc(c.name)}</div>`).join("");
+  for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
+    const id = c + "-" + r, used = state.used.includes(id);
+    html += `<button class="tile" data-c="${c}" data-r="${r}" ${used ? "disabled" : ""} aria-label="${esc(CATEGORIES[c].name)} for ${VALUES[r]}">${VALUES[r]}</button>`;
+  }
+  $("board").innerHTML = html;
+  $("board").querySelectorAll(".tile:not(:disabled)").forEach(b => b.addEventListener("click", () => openClue(+b.dataset.c, +b.dataset.r)));
+}
+function renderScores() {
+  $("scores").innerHTML = state.teams.map((t, i) => `
+    <div class="team" style="--tc:${TEAM_COLORS[i]}">
+      <div class="name">${esc(t.name)}</div>
+      <div class="pts ${t.score < 0 ? "neg" : ""}">${t.score}</div>
+      <div class="adj"><button data-i="${i}" data-d="-100" aria-label="Subtract 100 from ${esc(t.name)}">−100</button><button data-i="${i}" data-d="100" aria-label="Add 100 to ${esc(t.name)}">+100</button></div>
+    </div>`).join("");
+  $("scores").querySelectorAll(".adj button").forEach(b => b.addEventListener("click", () => {
+    state.teams[+b.dataset.i].score += +b.dataset.d; save(); renderScores();
+  }));
+}
+
+/* ---------- clue ---------- */
+let current = null;
+function openOverlay(cat, val) { $("ovCat").textContent = cat; $("ovVal").textContent = val; $("overlay").classList.remove("hidden"); }
+function closeOverlay() { $("overlay").classList.add("hidden"); current = null; }
+
+function openClue(c, r) {
+  const [clue, answer, note] = CATEGORIES[c].clues[r];
+  const isDD = state.dd[0] === c && state.dd[1] === r;
+  current = { c, r, clue, answer, note, value: VALUES[r], isDD, revealed: false, results: {} };
+  openOverlay(CATEGORIES[c].name, isDD ? "Daily Double" : VALUES[r]);
+  isDD ? renderDD() : renderClue();
+}
+function renderDD() {
+  const opts = state.teams.map((t, i) => `<option value="${i}">${esc(t.name)} (${t.score})</option>`).join("");
+  $("ovBody").innerHTML = `
+    <p class="dd-title">Daily Double</p>
+    <div class="panel">
+      <label for="ddTeam">Team that picked this tile</label>
+      <select id="ddTeam">${opts}</select>
+      <label for="ddWager" id="ddLabel"></label>
+      <input id="ddWager" type="number" min="0" step="100" inputmode="numeric">
+      <div class="controls"><button class="btn btn-brass" id="ddGo">Show question</button></div>
+    </div>`;
+  const setMax = () => {
+    const s = state.teams[+$("ddTeam").value].score, max = Math.max(s, 500);
+    $("ddLabel").textContent = `Wager (0 to ${max})`; $("ddWager").max = max; $("ddWager").value = Math.min(500, max);
+  };
+  $("ddTeam").addEventListener("change", setMax); setMax();
+  $("ddGo").addEventListener("click", () => {
+    const max = +$("ddWager").max; let w = Math.round(+$("ddWager").value || 0);
+    w = Math.max(0, Math.min(w, max));
+    current.value = w; current.ddTeam = +$("ddTeam").value;
+    $("ovVal").textContent = "Daily Double: " + w;
+    renderClue();
+  });
+}
+function renderClue() {
+  const teams = current.isDD ? [current.ddTeam] : state.teams.map((_, i) => i);
+  $("ovBody").innerHTML = `
+    <p class="clue">${esc(current.clue)}</p>
+    <p class="answer ${current.revealed ? "" : "hidden"}" id="ans">${esc(current.answer)}${current.note ? `<span class="note">${esc(current.note)}</span>` : ""}</p>
+    <div class="award ${current.revealed ? "" : "hidden"}" id="award">
+      ${teams.map(i => `<div class="award-group" style="--tc:${TEAM_COLORS[i]}"><span>${esc(state.teams[i].name)}</span>
+        <button class="yes" data-i="${i}" data-v="1" aria-pressed="${current.results[i] === 1}" aria-label="${esc(state.teams[i].name)} correct">✓</button>
+        <button class="no" data-i="${i}" data-v="-1" aria-pressed="${current.results[i] === -1}" aria-label="${esc(state.teams[i].name)} wrong">✗</button></div>`).join("")}
+    </div>
+    <div class="controls">
+      <button class="btn btn-brass ${current.revealed ? "hidden" : ""}" id="revealBtn">Show answer</button>
+      <button class="btn btn-secondary" style="color:#fff;border-color:rgba(255,255,255,.35)" id="backBtn">Back to board</button>
+    </div>
+    <p class="hint">Space shows the answer. Esc returns to the board. Click a check or X again to undo it.</p>`;
+  $("revealBtn").addEventListener("click", reveal);
+  $("backBtn").addEventListener("click", finishClue);
+  $("award").querySelectorAll("button").forEach(b => b.addEventListener("click", () => toggleResult(+b.dataset.i, +b.dataset.v)));
+}
+function reveal() { if (!current || current.revealed) return; current.revealed = true; renderClue(); }
+function toggleResult(i, v) {
+  const prev = current.results[i] || 0;
+  state.teams[i].score -= prev * current.value;            // undo previous mark
+  const next = prev === v ? 0 : v;
+  state.teams[i].score += next * current.value;
+  current.results[i] = next; save(); renderScores(); renderClue();
+}
+function finishClue() {
+  if (!current) return;
+  if (current.revealed || current.isDD) { const id = current.c + "-" + current.r; if (!state.used.includes(id)) state.used.push(id); }
+  if (!current.revealed && !current.isDD && !confirm("Leave without showing the answer? The tile will stay open.")) return;
+  save(); closeOverlay(); renderBoard();
+}
+
+/* ---------- final round ---------- */
+let final = null;
+$("finalBtn").addEventListener("click", () => {
+  final = { stage: "wager", wagers: state.teams.map(() => 0), results: {} };
+  current = { final: true };
+  openOverlay("Final round", FINAL.category);
+  renderFinal();
+});
+function renderFinal() {
+  const body = $("ovBody");
+  if (final.stage === "wager") {
+    body.innerHTML = `
+      <p class="dd-title" style="font-size:clamp(2.4rem,6vw,5rem)">${esc(FINAL.category)}</p>
+      <p class="hint" style="font-size:1.3rem">Each team writes down a wager before seeing the question. Teams with 0 or less can wager up to 0.</p>
+      <div class="wagers">${state.teams.map((t, i) => `
+        <div class="wager" style="--tc:${TEAM_COLORS[i]}"><div class="wn">${esc(t.name)}</div><div class="ws">Score: ${t.score} · max wager ${Math.max(0, t.score)}</div>
+        <input type="number" min="0" max="${Math.max(0, t.score)}" step="100" value="0" data-i="${i}" aria-label="${esc(t.name)} wager" inputmode="numeric"></div>`).join("")}</div>
+      <div class="controls"><button class="btn btn-brass" id="fGo">Lock wagers and show question</button>
+      <button class="btn btn-secondary" style="color:#fff;border-color:rgba(255,255,255,.35)" id="fBack">Back to board</button></div>`;
+    $("fGo").addEventListener("click", () => {
+      body.querySelectorAll(".wager input").forEach(inp => {
+        const i = +inp.dataset.i, max = Math.max(0, state.teams[i].score);
+        final.wagers[i] = Math.max(0, Math.min(Math.round(+inp.value || 0), max));
+      });
+      final.stage = "question"; renderFinal();
+    });
+    $("fBack").addEventListener("click", closeOverlay);
+  } else if (final.stage === "question" || final.stage === "answer") {
+    const shown = final.stage === "answer";
+    body.innerHTML = `
+      <p class="clue">${esc(FINAL.clue)}</p>
+      <p class="answer ${shown ? "" : "hidden"}">${esc(FINAL.answer)}<span class="note">${esc(FINAL.note)}</span></p>
+      <div class="award ${shown ? "" : "hidden"}">${state.teams.map((t, i) => `
+        <div class="award-group" style="--tc:${TEAM_COLORS[i]}"><span>${esc(t.name)} (${final.wagers[i]})</span>
+        <button class="yes" data-i="${i}" data-v="1" aria-pressed="${final.results[i] === 1}" aria-label="${esc(t.name)} correct">✓</button>
+        <button class="no" data-i="${i}" data-v="-1" aria-pressed="${final.results[i] === -1}" aria-label="${esc(t.name)} wrong">✗</button></div>`).join("")}</div>
+      <div class="controls">
+        ${shown ? `<button class="btn btn-brass" id="fDone">Show final standings</button>` : `<button class="btn btn-brass" id="fReveal">Show answer</button>`}
+      </div>
+      <p class="hint">${shown ? "Mark each team right or wrong, then show the standings." : "Give teams time to write their answers. Space shows the answer."}</p>`;
+    if (shown) {
+      body.querySelectorAll(".award button").forEach(b => b.addEventListener("click", () => {
+        const i = +b.dataset.i, v = +b.dataset.v; final.results[i] = final.results[i] === v ? 0 : v; renderFinal();
+      }));
+      $("fDone").addEventListener("click", () => {
+        state.teams.forEach((t, i) => { t.score += (final.results[i] || 0) * final.wagers[i]; });
+        save(); renderScores(); final.stage = "done"; renderFinal();
+      });
+    } else $("fReveal").addEventListener("click", () => { final.stage = "answer"; renderFinal(); });
+  } else {
+    const ranked = state.teams.map((t, i) => ({ ...t, i })).sort((a, b) => b.score - a.score);
+    $("ovVal").textContent = "Final standings";
+    body.innerHTML = `
+      <p class="dd-title" style="font-size:clamp(2.4rem,6vw,5rem)">${esc(ranked[0].name)} wins</p>
+      <ol class="standings">${ranked.map(t => `<li><span>${esc(t.name)}</span><span class="s">${t.score}</span></li>`).join("")}</ol>
+      <div class="controls"><button class="btn btn-secondary" style="color:#fff;border-color:rgba(255,255,255,.35)" id="fClose">Back to board</button></div>`;
+    $("fClose").addEventListener("click", closeOverlay);
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  if ($("overlay").classList.contains("hidden")) return;
+  if (e.target.matches("input, select")) return;
+  if (e.code === "Space") {
+    e.preventDefault();
+    if (current && current.final) { if (final && final.stage === "question") { final.stage = "answer"; renderFinal(); } }
+    else if (current && !(current.isDD && current.ddTeam === undefined)) reveal();
+  }
+  if (e.key === "Escape") {
+    if (current && current.final) { if (final.stage === "wager" || final.stage === "done") closeOverlay(); }
+    else if (current && !(current.isDD && current.ddTeam === undefined)) finishClue();
+  }
+});
+</script>
+</body>
+</html>
